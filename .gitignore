@@ -1,0 +1,15 @@
+# File locali di configurazione e workspace di VS Code
+.vscode/
+*.code-workspace
+
+# File temporanei di compilazione e build
+build/
+core/
+*.hex
+*.bin
+*.elf
+*.map
+
+# File di sistema operativo
+.DS_Store
+Thumbs.db

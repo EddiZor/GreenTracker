@@ -1,80 +1,41 @@
-# GreenTracker 🌿
+# 🌱 GreenTracker
 
-**GreenTracker** è un monitor compatto di umidità del suolo per piante d'appartamento e talee, basato su microcontrollore **NodeMCU (ESP8266)**, sensore capacitivo e display **OLED 0.91" I2C**.
+GreenTracker è un sistema di monitoraggio intelligente per l'umidità del terreno basato su NodeMCU ESP8266. Il progetto utilizza un doppio display OLED per fornire un feedback visivo immediato sullo stato della pianta e sul sistema, ed è dotato di connettività WiFi per predisporre il sensore all'invio dei dati in rete.
 
-Il dispositivo effettua letture analogiche periodiche, converte il valore tramite calibrazione personalizzata in percentuale (0–100%) e visualizza lo stato idrico del substrato in tempo reale.
-
----
+## 🚀 Novità della Versione 2.0
+* **Connettività WiFi:** Il sistema si connette alla rete domestica.
+* **Doppio Schermo Indipendente:** Gestione di due display OLED cloni in modo totalmente indipendente tramite bus I2C hardware e software.
+* **UI Migliorata:** Interfaccia grafica moderna utilizzando font Sans-Serif (Helvetica).
 
 ## 🛠️ Componenti Hardware
+* 1x Scheda NodeMCU ESP8266
+* 2x Moduli Display OLED 0.91" (128x32) I2C
+* 1x Sensore Capacitivo di Umidità del Terreno (Analogico)
+* Breadboard e cavetti Jumper
 
-- **Microcontrollore:** NodeMCU 1.0 (ESP-12E Module)
-- **Sensore:** Sensore di umidità capacitivo del suolo (Capacitive Soil Moisture Sensor v1.2 / v2.0)
-- **Display:** OLED 0.91" I2C (128x32 px, driver SSD1306)
-- **Alimentazione:** 5V via Micro-USB (regolatore interno a 3.3V)
+## 🔌 Schema Elettrico
 
----
+Tutti i componenti condividono l'alimentazione dai pin **3V3** e **GND** del NodeMCU.
 
-## 📌 Schema di Collegamento (Pinout)
+| Componente | Pin NodeMCU | Funzione |
+| :--- | :--- | :--- |
+| **Display 1 (Sensore)** | `D1` / `D2` | SCK / SDA (Hardware I2C) |
+| **Display 2 (Sistema)** | `D5` / `D6` | SCK / SDA (Software I2C) |
+| **Sensore Capacitivo** | `A0` | Lettura Analogica |
 
-Tutte le periferiche sono alimentate a **3.3V** per garantire compatibilità logica con i pin dell'ESP8266.
+## 💻 Installazione e Configurazione
 
-### Display OLED 0.91" (I2C)
-| Pin OLED | Pin NodeMCU | Descrizione |
-|---|---|---|
-| **VCC** | `3V3` | Alimentazione 3.3V |
-| **GND** | `GND` | Massa comune |
-| **SDA** | `D2` | I2C Data (GPIO 4) |
-| **SCL** | `D1` | I2C Clock (GPIO 5) |
+1. Clona questo repository in locale usando il terminale:
+   `git clone https://github.com/EddiZor/GreenTracker.git`
 
-### Sensore di Umidità Capacitivo
-| Pin Sensore | Pin NodeMCU | Descrizione |
-|---|---|---|
-| **VCC** | `3V3` | Alimentazione 3.3V |
-| **GND** | `GND` | Massa comune |
-| **AOUT** | `A0` | Uscita analogica (ADC0) |
+2. Assicurati di aver installato le librerie `U8g2` e `ESP8266WiFi` nell'IDE di Arduino (tramite Gestore Librerie).
 
----
+3. **⚠️ CONFIGURAZIONE WIFI:** Prima di caricare lo sketch, apri il file `GreenTracker.ino` e sostituisci gli asterischi `***` con il nome (SSID) e la password esatti della tua rete domestica:
+   `const char* ssid = "***";`
+   `const char* password = "***";`
 
-## 📚 Librerie Richieste
+4. Carica il firmware sulla scheda, impostando il Monitor Seriale a `115200 baud` per leggere l'indirizzo IP assegnato durante l'avvio.
 
-Per compilare lo sketch sono necessarie le seguenti librerie (installabili tramite Library Manager dell'IDE Arduino):
-
-- **Adafruit SSD1306** (di Adafruit)
-- **Adafruit GFX Library** (di Adafruit)
-- **Wire** (inclusa nel core ESP8266)
-
----
-
-## ⚙️ Calibrazione della Sonda
-
-Il sensore capacitivo restituisce valori analogici inversamente proporzionali all'umidità (valore più alto all'asciutto, più basso in acqua).
-
-Nello sketch sono presenti due costanti di calibrazione:
-
-```cpp
-const int dryVal = 600;   // Valore analogico rilevato con sonda all'aria aperta
-const int wetVal = 300;   // Valore analogico rilevato con sonda immersa in acqua
-```
-
-Per ricalibrare la sonda:
-1. Leggere i valori grezzi (`sensorValue`) tramite monitor seriale a 9600 baud.
-2. Rilevare il valore con la sonda completamente asciutta (`dryVal`).
-3. Rilevare il valore immergendo la lama della sonda fino al livello massimo consentito (`wetVal`).
-4. Aggiornare i valori nel file principale e ricaricare il firmware.
-
----
-
-## 📊 Soglie di Stato
-
-| Umidità (%) | Indicazione Display | Condizione Substrato |
-|---|---|---|
-| **< 30%** | `SECCO!` | Terreno asciutto, richiede annaffiatura |
-| **30% – 65%** | `OTTIMO` | Umidità ideale per la maggior parte delle piante |
-| **> 65%** | `UMIDO` | Terreno molto umido / saturo |
-
----
-
-## 📄 Licenza
-
-Distribuito sotto licenza MIT. Libero per uso personale e modifiche.
+## 🎛️ Calibrazione
+Per ottenere una lettura percentuale (0-100%) il più accurata possibile con il tuo terreno specifico, testa il sensore da completamente asciutto e poi immerso in un bicchiere d'acqua. 
+Aggiorna di conseguenza i parametri `valoreAriaSecca` e `valoreAcqua` che trovi in cima al codice.

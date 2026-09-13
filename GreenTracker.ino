@@ -1,63 +1,76 @@
+#include <Arduino.h>
+#include <U8g2lib.h>
 #include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
 
-#define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 32 // Nota: i display da 0.91" sono solitamente 128x32
-#define OLED_RESET    -1
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+// --- Configurazione Pin ---
+const int sensorPin = A0; // Pin analogico per il sensore capacitivo
 
-const int sensorPin = A0;
+// Valori di calibrazione del sensore (da testare e aggiustare in base al tuo terreno)
+// Inserisci il sensore in aria secca per il primo valore, e in un bicchiere d'acqua per il secondo
+const int valoreAriaSecca = 850; 
+const int valoreAcqua = 350;
 
-// Valori di calibrazione tipici per il sensore capacitivo
-const int dryVal = 600;   
-const int wetVal = 300;   
+// --- Inizializzazione Display (0.91" 128x32 OLED) ---
+// Display 1: Software I2C sui pin D1 (Clock) e D2 (Data)
+U8G2_SSD1306_128X32_UNIVISION_F_SW_I2C display1(U8G2_R0, /* clock=*/ D1, /* data=*/ D2, /* reset=*/ U8X8_PIN_NONE);
+
+// Display 2: Software I2C sui pin D5 (Clock) e D6 (Data)
+U8G2_SSD1306_128X32_UNIVISION_F_SW_I2C display2(U8G2_R0, /* clock=*/ D5, /* data=*/ D6, /* reset=*/ U8X8_PIN_NONE);
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
-  // Inizializzazione OLED 128x32 (Indirizzo 0x3C)
-  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-    Serial.println(F("SSD1306 fallito"));
-    for(;;);
-  }
-
-  display.clearDisplay();
-  display.setTextColor(SSD1306_WHITE);
+  // Inizializzazione dei due display
+  display1.begin();
+  display2.begin();
 }
 
 void loop() {
+  // 1. Lettura del sensore capacitivo
   int sensorValue = analogRead(sensorPin);
   
-  // Calcolo percentuale
-  int moisturePercent = map(sensorValue, dryVal, wetVal, 0, 100);
-  moisturePercent = constrain(moisturePercent, 0, 100);
+  // 2. Calcolo della percentuale di umidità
+  int umiditaPerc = map(sensorValue, valoreAriaSecca, valoreAcqua, 0, 100);
+  umiditaPerc = constrain(umiditaPerc, 0, 100);
 
-  // Aggiornamento Display OLED 0.91" (layout compatto in altezza)
-  display.clearDisplay();
+  // --- 3. Aggiornamento Display 1 (Lettura Sensore) ---
+  display1.clearBuffer();
+  
+  // Etichette a sinistra (font Helvetica Sans Serif medio)
+  display1.setFont(u8g2_font_helvB12_tr); 
+  display1.drawStr(0, 13, "Terr."); 
+  display1.drawStr(0, 31, "Umid.:"); 
+  
+  // Valore percentuale ingrandito e spostato a destra
+  display1.setFont(u8g2_font_helvB18_tr); // Font Helvetica Sans Serif grande (18 pixel)
+  
+  // Creiamo la stringa con il numero e il simbolo %
+  String percTesto = String(umiditaPerc) + "%";
+  
+  // Calcoliamo la larghezza del testo in pixel per allinearlo a destra
+  int larghezzaTesto = display1.getStrWidth(percTesto.c_str());
+  int posX = 128 - larghezzaTesto; // 128 è la larghezza massima del display
+  
+  // Stampiamo il valore a destra. Y = 32 per appoggiarlo sul fondo
+  display1.setCursor(posX, 32); 
+  display1.print(percTesto);
+  
+  display1.sendBuffer(); 
 
-  // Riga 1: Titolo
-  display.setTextSize(1);
-  display.setCursor(0, 0);
-  display.print(F("GREEN TRACKER"));
+  // --- 4. Aggiornamento Display 2 (Stato) ---
+  display2.clearBuffer();
+  
+  display2.setFont(u8g2_font_helvB12_tr);
+  display2.drawStr(0, 13, "GreenTracker");
+  display2.drawStr(0, 31, "Stato: OK"); 
+  display2.sendBuffer(); 
 
-  // Riga 2: Valore percentuale grande
-  display.setTextSize(2);
-  display.setCursor(0, 12);
-  display.print(moisturePercent);
-  display.print(F("%"));
+  // Stampa anche sul Monitor Seriale per comodità di debug
+  Serial.print("Valore Grezzo: ");
+  Serial.print(sensorValue);
+  Serial.print(" | Umidità: ");
+  Serial.print(umiditaPerc);
+  Serial.println("%");
 
-  // Stato testuale a destra
-  display.setTextSize(1);
-  display.setCursor(70, 16);
-  if (moisturePercent < 30) {
-    display.print(F("SECCO!"));
-  } else if (moisturePercent >= 30 && moisturePercent < 65) {
-    display.print(F("OTTIMO"));
-  } else {
-    display.print(F("UMIDO"));
-  }
-
-  display.display();
-  delay(2000);
+  delay(2000); // Pausa di 2 secondi prima della prossima lettura
 }

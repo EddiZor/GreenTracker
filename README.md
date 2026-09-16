@@ -10,18 +10,18 @@ GreenTracker è un sistema di monitoraggio intelligente per l'umidità del terre
 ## 🛠️ Componenti Hardware
 * 1x Scheda NodeMCU ESP8266
 * 2x Moduli Display OLED 0.91" (128x32) I2C
-* 1x Sensore Capacitivo di Umidità del Terreno (Analogico)
+* 1x Modulo Multiplexer Analogico 16 Canali (CD74HC4067)
+* Fino a 16x Sensori Capacitivi di Umidità del Terreno (Analogici)
 * Breadboard e cavetti Jumper
 
 ## 🔌 Schema Elettrico
-
-Tutti i componenti condividono l'alimentazione dai pin **3V3** e **GND** del NodeMCU.
-
 | Componente | Pin NodeMCU | Funzione |
 | :--- | :--- | :--- |
-| **Display 1 (Sensore)** | `D1` / `D2` | SCK / SDA (Hardware I2C) |
+| **Display 1 (Sensori)** | `D1` / `D2` | SCK / SDA (Hardware I2C) |
 | **Display 2 (Sistema)** | `D5` / `D6` | SCK / SDA (Software I2C) |
-| **Sensore Capacitivo** | `A0` | Lettura Analogica |
+| **Multiplexer S0, S1, S2, S3** | `D3`, `D4`, `D7`, `D8` | Indirizzamento Canali (Bit 0-3) |
+| **Multiplexer SIG** | `A0` | Lettura Analogica Multiplexata |
+| **Multiplexer EN** | `GND` | Abilitazione chip (Sempre attivo) |
 
 ## 💻 Installazione e Configurazione
 

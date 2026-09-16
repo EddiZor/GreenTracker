@@ -2,6 +2,16 @@
 
 Tutte le modifiche di rilievo al progetto GreenTracker saranno documentate in questo file.
 
+## [3.0] - 2026-09-16
+
+### Aggiunto
+* **Supporto Multi-Sensore:** Integrazione del modulo multiplexer CD74HC4067 a 16 canali.
+* **Carosello UI:** Il Display 1 ora ruota ciclicamente le informazioni di ogni pianta collegata (ogni 3 secondi).
+* **Case 3D:** Aggiunta cartella `Case_3D` con modello parametrico OpenSCAD e file STL pronto per la stampa in PLA.
+
+### Modificato
+* **UI Ottimizzata:** Ridotta l'altezza del font per la percentuale di umidità (da `helvB18` a `helvB14`) per evitare sovrapposizioni e migliorare l'allineamento estetico.
+
 ## [2.0] - 2026-09-13
 
 ### Aggiunto

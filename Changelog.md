@@ -1,33 +1,18 @@
+### 4. File di Log delle Versioni (`CHANGELOG.md`)
+
+```markdown
 # Changelog
+Tutte le modifiche rilevanti a questo progetto saranno documentate in questo file.
 
-Tutte le modifiche di rilievo al progetto GreenTracker saranno documentate in questo file.
-
-## [3.0] - 2026-09-16
+## [3.0.0] - 2026-09-19
 
 ### Aggiunto
-* **Supporto Multi-Sensore:** Integrazione del modulo multiplexer CD74HC4067 a 16 canali.
-* **Carosello UI:** Il Display 1 ora ruota ciclicamente le informazioni di ogni pianta collegata (ogni 3 secondi).
-* **Case 3D:** Aggiunta cartella `Case_3D` con modello parametrico OpenSCAD e file STL pronto per la stampa in PLA.
+- **Rilevamento Plug & Play:** Implementata logica per ignorare automaticamente le porte vuote del multiplexer.
+- **Supporto Pushover:** Inserita libreria `ESP8266HTTPClient` per inviare notifiche push (HTTPS) allo smartphone.
+- **Logica Anti-Spam:** Sistema di booleani per evitare invii ripetuti di allarmi sotto la soglia critica del 20%.
+- **Layout Hardware HW-178:** Creata una mappatura dedicata per la basetta millefori 24x18 ottimizzata per la geometria dei pin del modello HW-178.
+- **Checklist Saldature:** Aggiunto un tracker in Markdown nel file ASSEMBLY.md per seguire le fasi di costruzione fisica.
 
 ### Modificato
-* **UI Ottimizzata:** Ridotta l'altezza del font per la percentuale di umidità (da `helvB18` a `helvB14`) per evitare sovrapposizioni e migliorare l'allineamento estetico.
-
-## [2.0] - 2026-09-13
-
-### Aggiunto
-* **Modulo WiFi:** Implementata la connessione alla rete domestica tramite libreria `ESP8266WiFi`.
-* **Stato di Rete su UI:** Il Display 2 mostra le fasi ("Connessione...", "WiFi: OK", "WiFi: Perso"). Aggiunta schermata temporanea ("WiFi: Connesso!") per 3 secondi all'avvio.
-* **Documentazione WiFi:** Istruzioni nel `README.md` per la configurazione della rete.
-
-### Modificato
-* **Sicurezza Firmware:** Variabili `ssid` e `password` valorizzate ad asterischi `***` come placeholder per il repository pubblico.
-
----
-
-## [1.0] - 2026-09-13
-
-### Aggiunto
-* **Firmware base:** Prima release stabile per NodeMCU ESP8266.
-* **Doppio Display OLED:** Utilizzo di bus I2C software via pin D5/D6 tramite libreria `U8g2` per bypassare l'indirizzo hardware fisso.
-* **Interfaccia Utente:** Layout con allineamento a destra dinamico per la percentuale e font Sans-Serif (Helvetica Bold 12 e 18).
-* **Sensore Capacitivo:** Lettura analogica sul pin `A0` con mappatura percentuale (0-100%).
+- **Routine di connessione WiFi:** Aggiunto blocco `WiFi.mode(WIFI_STA); WiFi.disconnect();` nel setup per forzare il reset della memoria radio ed evitare loop di connessione (Permission/Auth errors).
+- **Interfaccia OLED:** Il carosello ora salta attivamente i cicli di rendering per i sensori non fisicamente connessi.

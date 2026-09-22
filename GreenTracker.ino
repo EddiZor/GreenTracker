@@ -249,11 +249,11 @@ void loop() {
     display1.setFont(u8g2_font_helvB12_tr); 
     
     if (i == 15) {
-      display1.drawStr(0, 13, "Sens. Luce"); 
+      display1.drawStr(0, 13, "Sensore Luce"); 
       display1.drawStr(0, 31, "Esposiz.:");
     } else {
-      display1.drawStr(0, 13, ("Sens. " + String(i + 1)).c_str()); 
-      display1.drawStr(0, 31, "Umid.:"); 
+      display1.drawStr(0, 13, ("Sensore " + String(i + 1)).c_str()); 
+      display1.drawStr(0, 31, "Umidita':"); 
     }
      
     display1.setFont(u8g2_font_helvB14_tr); 

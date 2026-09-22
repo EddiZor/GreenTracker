@@ -6,10 +6,10 @@
     1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18
   +----------------------------------------------------+
 1 | O [N] -  -  - USB -  -  - [N] O  O  O  O  O  O  O  O |
-2 | O [N]                       | O  O [D1] O  O [D2] O | <- OLED 1 & 2
-3 | O [N]                       | O  O [D1] O  O [D2] O |    (4 pin cad.)
-4 | O [N]     NODE MCU          | O  O [D1] O  O [D2] O |
-5 | O [N]     ESP8266           | O  O [D1] O  O [D2] O |
+2 | O [N]                       | O  O  [D1] O  O [D2] O | <- OLED 1 & 2
+3 | O [N]                       | O  O  [D1] O  O [D2] O |    (4 pin cad.)
+4 | O [N]     NODE MCU          | O  O  [D1] O  O [D2] O |
+5 | O [N]     ESP8266           | O  O  [D1] O  O [D2] O |
 6 | O [N]     (Antenna Giù)     | O  O  O  O  O  O  O  O |
 7 | O [N]                       | O  O  O  O  O  O  O  O |
 8 | O [N]                       | O  O  O  O  O  O  O  O |

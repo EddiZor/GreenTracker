@@ -1,16 +1,16 @@
 # 🛠️ Guida all'Assemblaggio GreenTracker
 
-## 🗺️ Layout Millefori (Ottimizzato per HW-178)
+## 🗺️ Layout Millefori (Ottimizzato per HW-178 con NodeMCU Ruotato)
 
 ```text
     1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18
   +----------------------------------------------------+
-1 | O [N] -  -  -  -  -  -  - [N] O  O  O  O  O  O  O  O |
-2 | O [N]                       | O  O [D1] O  O [D2]  O | <- OLED 1 & 2
-3 | O [N]                       | O  O [D1] O  O [D2]  O |    (4 pin cad.)
-4 | O [N]     NODE MCU          | O  O [D1] O  O [D2]  O |
-5 | O [N]     ESP8266           | O  O [D1] O  O [D2]  O |
-6 | O [N]     (Antenna Su)      | O  O  O  O  O  O  O  O |
+1 | O [N] -  -  - USB -  -  - [N] O  O  O  O  O  O  O  O |
+2 | O [N]                       | O  O [D1] O  O [D2] O | <- OLED 1 & 2
+3 | O [N]                       | O  O [D1] O  O [D2] O |    (4 pin cad.)
+4 | O [N]     NODE MCU          | O  O [D1] O  O [D2] O |
+5 | O [N]     ESP8266           | O  O [D1] O  O [D2] O |
+6 | O [N]     (Antenna Giù)     | O  O  O  O  O  O  O  O |
 7 | O [N]                       | O  O  O  O  O  O  O  O |
 8 | O [N]                       | O  O  O  O  O  O  O  O |
 9 | O [N]                       | O  O  O  O  O  O  O  O |
@@ -30,9 +30,11 @@
 23| O [G][G][G][G][G][G][G][G][G][G][G][G][G][G][G][G] O | <- RIGA GND (Massa)
 24| O [S][S][S][S][S][S][S][S][S][S][S][S][S][S][S][S] O | <- RIGA SEGNALI (Sensori)
   +----------------------------------------------------+
+```
 
+## 📋 Checklist Saldature
 
-  ## 📋 Checklist Saldature
+> **Nota Bene:** Il NodeMCU è ora montato capovolto. I collegamenti restano invariati, ma per individuare i pin (D1, D2, 3V3, GND, ecc.) fai sempre riferimento alle scritte stampate fisicamente sulla scheda e non alla loro posizione spaziale.
 
 **FASE 1: Le Autostrade dell'Alimentazione (3.3V e GND)**
 

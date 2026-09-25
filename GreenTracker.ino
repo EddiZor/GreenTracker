@@ -1,6 +1,6 @@
 /**
  * Progetto: GreenTracker
- * Versione: 5.0 (Live Dashboard & LDR Ready)
+ * Versione: 5.0 (Live Dashboard & LDR Ready) - Fixed Pushover
  * Autore: SKYSIM PILOT
  */
 
@@ -144,15 +144,66 @@ void gestisciPaginaPrincipale() {
   server.send(200, "text/html", html);
 }
 
+// --- FUNZIONE NUOVA: Codifica i caratteri speciali e le emoji per il Web ---
+String urlEncode(String str) {
+  String encodedString = "";
+  char c;
+  char code0;
+  char code1;
+  for (int i = 0; i < str.length(); i++){
+    c = str.charAt(i);
+    if (c == ' '){
+      encodedString += '+';
+    } else if (isalnum(c)){
+      encodedString += c;
+    } else{
+      code1 = (c & 0xf) + '0';
+      if ((c & 0xf) > 9){
+          code1 = (c & 0xf) - 10 + 'A';
+      }
+      c = (c >> 4) & 0xf;
+      code0 = c + '0';
+      if (c > 9){
+          code0 = c - 10 + 'A';
+      }
+      encodedString += '%';
+      encodedString += code0;
+      encodedString += code1;
+    }
+  }
+  return encodedString;
+}
+
+// --- FUNZIONE AGGIORNATA ---
 void inviaNotificaPushover(String messaggio) {
   if (WiFi.status() != WL_CONNECTED) return;
+  
+  Serial.println("\n[Pushover] Preparazione invio notifica...");
+  
   WiFiClientSecure client;
-  client.setInsecure(); 
+  client.setInsecure(); // Ignora la validazione rigida del certificato SSL
+  
   HTTPClient http;
   http.begin(client, "https://api.pushover.net/1/messages.json");
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-  String postData = "token=" + String(pushoverApiToken) + "&user=" + String(pushoverUserKey) + "&message=" + messaggio;
-  http.POST(postData);
+  
+  // Applichiamo l'urlEncode al messaggio per proteggere l'emoji e la "à"
+  String postData = "token=" + String(pushoverApiToken) + "&user=" + String(pushoverUserKey) + "&message=" + urlEncode(messaggio);
+  
+  // Eseguiamo la richiesta e salviamo il codice di risposta
+  int httpResponseCode = http.POST(postData);
+  
+  // Debug sul Monitor Seriale
+  Serial.print("[Pushover] Codice HTTP di risposta: ");
+  Serial.println(httpResponseCode);
+  
+  if (httpResponseCode > 0) {
+    String response = http.getString();
+    Serial.println("[Pushover] Risposta del server: " + response);
+  } else {
+    Serial.println("[Pushover] ERRORE: Connessione fallita. Codice: " + String(httpResponseCode));
+  }
+  
   http.end();
 }
 
@@ -255,7 +306,7 @@ void loop() {
       display1.drawStr(0, 13, ("Sensore " + String(i + 1)).c_str()); 
       display1.drawStr(0, 31, "Umidita':"); 
     }
-     
+      
     display1.setFont(u8g2_font_helvB14_tr); 
     String percTesto = String(valoriSensori[i]) + "%";
     display1.setCursor(128 - display1.getStrWidth(percTesto.c_str()), 31); 

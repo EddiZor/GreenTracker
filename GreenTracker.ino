@@ -1,6 +1,6 @@
 /**
  * Progetto: GreenTracker
- * Versione: 5.0 (Live Dashboard & LDR Ready) - Fixed Pushover
+ * Versione: 5.1 (Fixed Serial Boot & Pushover HTTP)
  * Autore: SKYSIM PILOT
  */
 
@@ -9,9 +9,8 @@
 #include <Wire.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
-#include <WiFiClientSecure.h>
 #include <ESP8266WebServer.h>
-#include <time.h> // Nuova libreria per l'orario
+#include <time.h> // Libreria per l'orario
 
 // --- Credenziali WiFi ---
 const char* ssid = "IL_TUO_WIFI";       
@@ -30,7 +29,7 @@ const int pin_S3 = D8;
 const int pin_SIG = A0;
 
 const int MAX_SENSORI = 16; 
-int valoriSensori[16]; // Può essere umidità o luce
+int valoriSensori[16]; 
 bool sensoreConnesso[16]; 
 bool allarmeInviato[16]; 
 
@@ -59,11 +58,10 @@ int leggiCanaleMux(int canale) {
 
 // --- FUNZIONE: Genera la pagina HTML della Web App ---
 void gestisciPaginaPrincipale() {
-  // Lettura Orario Corrente
   time_t now = time(nullptr);
   struct tm* timeinfo = localtime(&now);
   String orarioAggiornamento = "Sincronizzazione in corso...";
-  if (timeinfo->tm_year > 120) { // Se l'orario è stato scaricato correttamente (anno > 2020)
+  if (timeinfo->tm_year > 120) { 
     char timeString[10];
     sprintf(timeString, "%02d:%02d:%02d", timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
     orarioAggiornamento = String(timeString);
@@ -82,18 +80,13 @@ void gestisciPaginaPrincipale() {
   html += ".card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }";
   html += ".card-title { font-size: 1.1em; font-weight: bold; color: #eee; }";
   html += ".card-value { font-size: 1.3em; font-weight: bold; }";
-  
-  // Stili per la barra di riempimento
   html += ".progress-bg { background-color: #333; border-radius: 5px; height: 10px; width: 100%; overflow: hidden; }";
   html += ".progress-bar { height: 100%; border-radius: 5px; transition: width 0.5s; }";
   html += ".bg-green { background-color: #4CAF50; color: #4CAF50; }";
   html += ".bg-yellow { background-color: #FFC107; color: #FFC107; }";
   html += ".bg-red { background-color: #F44336; color: #F44336; }";
-  
-  // Stile speciale per la card della Luce
   html += ".card-luce { border-left: 4px solid #FFC107; }";
   html += ".card-pianta { border-left: 4px solid #4CAF50; }";
-  
   html += ".footer { color: #888; font-size: 0.85em; margin-top: 30px; line-height: 1.5; }";
   html += "</style></head><body>";
   
@@ -101,7 +94,6 @@ void gestisciPaginaPrincipale() {
   
   bool almenoUnSensore = false;
   
-  // CICLO SENSORI PIANTE (Porte C0 - C14)
   for (int i = 0; i < 15; i++) {
     if (sensoreConnesso[i]) {
       almenoUnSensore = true;
@@ -121,7 +113,6 @@ void gestisciPaginaPrincipale() {
     }
   }
 
-  // SEZIONE SENSORE LUCE (Esclusiva per la Porta C15)
   if (sensoreConnesso[15]) {
       almenoUnSensore = true;
       int luce = valoriSensori[15];
@@ -144,7 +135,6 @@ void gestisciPaginaPrincipale() {
   server.send(200, "text/html", html);
 }
 
-// --- FUNZIONE NUOVA: Codifica i caratteri speciali e le emoji per il Web ---
 String urlEncode(String str) {
   String encodedString = "";
   char c;
@@ -174,26 +164,22 @@ String urlEncode(String str) {
   return encodedString;
 }
 
-// --- FUNZIONE AGGIORNATA ---
+// --- FUNZIONE PUSHOVER (HTTP Standard) ---
 void inviaNotificaPushover(String messaggio) {
   if (WiFi.status() != WL_CONNECTED) return;
   
   Serial.println("\n[Pushover] Preparazione invio notifica...");
   
-  WiFiClientSecure client;
-  client.setInsecure(); // Ignora la validazione rigida del certificato SSL
-  
+  WiFiClient client; // Client standard non sicuro
   HTTPClient http;
-  http.begin(client, "https://api.pushover.net/1/messages.json");
+  
+  http.begin(client, "http://api.pushover.net/1/messages.json");
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
   
-  // Applichiamo l'urlEncode al messaggio per proteggere l'emoji e la "à"
   String postData = "token=" + String(pushoverApiToken) + "&user=" + String(pushoverUserKey) + "&message=" + urlEncode(messaggio);
   
-  // Eseguiamo la richiesta e salviamo il codice di risposta
   int httpResponseCode = http.POST(postData);
   
-  // Debug sul Monitor Seriale
   Serial.print("[Pushover] Codice HTTP di risposta: ");
   Serial.println(httpResponseCode);
   
@@ -209,6 +195,8 @@ void inviaNotificaPushover(String messaggio) {
 
 void setup() {
   Serial.begin(115200);
+  delay(2000); // Stabilizzazione seriale post-boot
+  Serial.println("\n\n[GreenTracker] Avvio in corso...");
 
   pinMode(pin_S0, OUTPUT);
   pinMode(pin_S1, OUTPUT);
@@ -234,9 +222,20 @@ void setup() {
   delay(100);          
   WiFi.begin(ssid, password);
   
-  while (WiFi.status() != WL_CONNECTED) { delay(1000); }
+  // Ciclo di connessione WiFi con timeout protetto
+  int tentativi = 0;
+  while (WiFi.status() != WL_CONNECTED) { 
+    delay(500); 
+    Serial.print(".");
+    tentativi++;
+    if (tentativi > 30) {
+      Serial.println("\n[WiFi] Connessione fallita! Verifica SSID e Password.");
+      break; 
+    }
+  }
   
-  // Sincronizzazione Orario (Fuso orario Roma/Italia)
+  Serial.println("\n[WiFi] Connesso! Indirizzo IP: " + WiFi.localIP().toString());
+  
   configTime("CET-1CEST,M3.5.0,M10.5.0/3", "pool.ntp.org");
   
   server.on("/", gestisciPaginaPrincipale); 
@@ -251,13 +250,15 @@ void setup() {
   display1.drawStr(0, 13, "Sistema OK");
   display1.sendBuffer();
 
+  // ---> AGGIUNGI QUESTA RIGA PER RICEVERE LA NOTIFICA ALL'ACCENSIONE <---
+  inviaNotificaPushover("🌿 GreenTracker avviato e online!");
+
   attesaIntelligente(3000); 
 }
 
 void loop() {
   server.handleClient(); 
 
-  // FASE 1: Lettura Sensori
   for (int i = 0; i < MAX_SENSORI; i++) {
     int valoreGrezzo = leggiCanaleMux(i);
     if (valoreGrezzo < 50) {
@@ -267,12 +268,9 @@ void loop() {
       sensoreConnesso[i] = true;
       
       if (i == 15) { 
-        // Logica Sensore Luce (Mappatura temporanea 0-1023)
-        // La calibreremo precisamente quando collegherai l'LDR
         int perc = map(valoreGrezzo, 0, 1023, 0, 100);
         valoriSensori[i] = constrain(perc, 0, 100);
       } else {
-        // Logica Sensori Umidità
         int perc = map(valoreGrezzo, valoreAriaSecca, valoreAcqua, 0, 100);
         valoriSensori[i] = constrain(perc, 0, 100);
 
@@ -289,7 +287,6 @@ void loop() {
     }
   }
 
-  // FASE 2: Carosello Display
   bool almenoUnSensore = false;
 
   for (int i = 0; i < MAX_SENSORI; i++) {
